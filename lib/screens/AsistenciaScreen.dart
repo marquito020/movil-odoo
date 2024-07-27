@@ -1,17 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:movil_academico/services/colegio_service.dart';
-import 'package:nb_utils/nb_utils.dart';
 
-class AulaScreen extends StatefulWidget {
-  const AulaScreen({super.key});
+class AsistenciaScreen extends StatefulWidget {
+  const AsistenciaScreen({super.key});
 
   @override
-  State<AulaScreen> createState() => _AulaScreenState();
+  State<AsistenciaScreen> createState() => _AsistenciaScreenState();
 }
 
-class _AulaScreenState extends State<AulaScreen> {
-  List<Map<String, dynamic>?> aulas = [];
-  List<Map<String, dynamic>?> filteredAulas = [];
+class _AsistenciaScreenState extends State<AsistenciaScreen> {
+  List<Map<String, dynamic>?> asistencias = [];
+  List<Map<String, dynamic>?> filteredAsistencias = [];
   ColegioService colegioService = ColegioService();
   TextEditingController searchController = TextEditingController();
   bool isLoading = false;
@@ -27,27 +26,29 @@ class _AulaScreenState extends State<AulaScreen> {
       isLoading = true;
     });
 
-    aulas = await colegioService.getAulas();
-    filteredAulas = aulas;
+    asistencias = await colegioService.getAsistencias();
+    filteredAsistencias = asistencias;
 
     setState(() {
       isLoading = false;
     });
   }
 
-  void _filterAulas(String query) {
+  void _filterAsistencias(String query) {
     if (query.isEmpty) {
       setState(() {
-        filteredAulas = aulas;
+        filteredAsistencias = asistencias;
       });
     } else {
       setState(() {
-        filteredAulas = aulas.where((aula) {
-          final numero = aula?['numero']?.toLowerCase() ?? '';
-          final name = aula?['name']?.toLowerCase() ?? '';
+        filteredAsistencias = asistencias.where((asistencia) {
+          final alumno = asistencia?['alumno_id']?[1]?.toLowerCase() ?? '';
+          final profesor = asistencia?['profesor_id']?[1]?.toLowerCase() ?? '';
+          final fecha = asistencia?['fecha']?.toLowerCase() ?? '';
 
-          return numero.contains(query.toLowerCase()) ||
-              name.contains(query.toLowerCase());
+          return alumno.contains(query.toLowerCase()) ||
+              profesor.contains(query.toLowerCase()) ||
+              fecha.contains(query.toLowerCase());
         }).toList();
       });
     }
@@ -63,7 +64,7 @@ class _AulaScreenState extends State<AulaScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Aulas'),
+        title: const Text('Asistencias'),
         bottom: PreferredSize(
           preferredSize: const Size.fromHeight(48.0),
           child: Padding(
@@ -75,7 +76,7 @@ class _AulaScreenState extends State<AulaScreen> {
                 border: OutlineInputBorder(),
                 prefixIcon: Icon(Icons.search),
               ),
-              onChanged: _filterAulas,
+              onChanged: _filterAsistencias,
             ),
           ),
         ),
@@ -85,19 +86,15 @@ class _AulaScreenState extends State<AulaScreen> {
               child: CircularProgressIndicator(),
             )
           : ListView.builder(
-              itemCount: filteredAulas.length,
+              itemCount: filteredAsistencias.length,
               itemBuilder: (context, index) {
-                return Container(
-                  margin: const EdgeInsets.only(bottom: 16),
-                  padding: const EdgeInsets.all(16),
-                  decoration: boxDecorationRoundedWithShadow(16),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text("Numero: ${filteredAulas[index]!['numero']}"),
-                      8.height,
-                      Text("Nombre: " + filteredAulas[index]!['name']),
-                    ],
+                return Card(
+                  child: ListTile(
+                    title: Text("Alumno:" +
+                        filteredAsistencias[index]?['alumno_id'][1]),
+                    subtitle: Text(
+                        filteredAsistencias[index]?['profesor_id'][1] ?? ''),
+                    /* trailing: Text(filteredAsistencias[index]?['fecha'] ?? ''), */
                   ),
                 );
               },

@@ -4,7 +4,9 @@ import 'package:movil_academico/screens/HorarioScreen.dart';
 import 'package:movil_academico/screens/MateriaScreen.dart';
 import 'package:movil_academico/screens/ProfesorScreen.dart';
 
-import '../screens/AulaScreen.dart';
+import 'package:movil_academico/screens/AulaScreen.dart';
+
+import '../screens/AsistenciaScreen.dart';
 
 class Routes {
   static const String curso = '/curso';
@@ -12,6 +14,7 @@ class Routes {
   static const String horario = '/horario';
   static const String profesor = '/profesor';
   static const String materia = '/materia';
+  static const String asistencia = '/asistencia';
 }
 
 Map<String, WidgetBuilder> getApplicationRoutes() {
@@ -21,6 +24,7 @@ Map<String, WidgetBuilder> getApplicationRoutes() {
     Routes.aula: (BuildContext context) => const AulaScreen(),
     Routes.horario: (BuildContext context) => const HorarioScreen(),
     Routes.profesor: (BuildContext context) => const ProfesorScreen(),
-    Routes.materia: (BuildContext context) => const MateriaScreen()
+    Routes.materia: (BuildContext context) => const MateriaScreen(),
+    Routes.asistencia: (BuildContext context) => const AsistenciaScreen()
   };
 }

@@ -11,8 +11,10 @@ class MateriaScreen extends StatefulWidget {
 
 class _MateriaScreenState extends State<MateriaScreen> {
   List<Map<String, dynamic>?> materias = [];
+  List<Map<String, dynamic>?> filteredMaterias = [];
   ColegioService colegioService = ColegioService();
   bool _loading = false;
+  TextEditingController searchController = TextEditingController();
 
   @override
   void initState() {
@@ -25,23 +27,45 @@ class _MateriaScreenState extends State<MateriaScreen> {
       _loading = true;
     });
 
-    // Fetch the data
     List<Map<String, dynamic>?> fetchedMaterias =
         await colegioService.getMaterias();
 
-    // Ensure the widget is still mounted before calling setState
     if (!mounted) return;
 
     setState(() {
       materias = fetchedMaterias;
+      filteredMaterias = fetchedMaterias;
       _loading = false;
     });
   }
 
+  void _filterMaterias(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredMaterias = materias;
+      });
+    } else {
+      setState(() {
+        filteredMaterias = materias.where((materia) {
+          final name = materia?['name']?.toLowerCase() ?? '';
+          final curso = materia?['curso_id']?[1]?.toLowerCase() ?? '';
+          final profesor = materia?['profesor_id']?[1]?.toLowerCase() ?? '';
+          final aula = materia?['aula_id']?[1]?.toLowerCase() ?? '';
+          final horario = materia?['horario_id']?[1]?.toLowerCase() ?? '';
+
+          return name.contains(query.toLowerCase()) ||
+              curso.contains(query.toLowerCase()) ||
+              profesor.contains(query.toLowerCase()) ||
+              aula.contains(query.toLowerCase()) ||
+              horario.contains(query.toLowerCase());
+        }).toList();
+      });
+    }
+  }
+
   @override
   void dispose() {
-    // Cancel any ongoing operations if needed
-    // Example: If using a timer or a stream, cancel it here.
+    searchController.dispose();
     super.dispose();
   }
 
@@ -50,13 +74,28 @@ class _MateriaScreenState extends State<MateriaScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Materias'),
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48.0),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              decoration: const InputDecoration(
+                hintText: 'Buscar...',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: _filterMaterias,
+            ),
+          ),
+        ),
       ),
       body: _loading
           ? const Center(
               child: CircularProgressIndicator(),
             )
           : ListView.builder(
-              itemCount: materias.length,
+              itemCount: filteredMaterias.length,
               itemBuilder: (context, index) {
                 return Container(
                   margin: const EdgeInsets.only(bottom: 16),
@@ -65,15 +104,17 @@ class _MateriaScreenState extends State<MateriaScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text("Nombre: ${materias[index]!['name']}"),
+                      Text("Nombre: ${filteredMaterias[index]!['name']}"),
                       8.height,
-                      Text("Curso: ${materias[index]!['curso_id'][1]}"),
+                      Text("Curso: ${filteredMaterias[index]!['curso_id'][1]}"),
                       8.height,
-                      Text("Profesor: ${materias[index]!['profesor_id'][1]}"),
+                      Text(
+                          "Profesor: ${filteredMaterias[index]!['profesor_id'][1]}"),
                       8.height,
-                      Text("Aula: ${materias[index]!['aula_id'][1]}"),
+                      Text("Aula: ${filteredMaterias[index]!['aula_id'][1]}"),
                       8.height,
-                      Text("Horario: ${materias[index]!['horario_id'][1]}"),
+                      Text(
+                          "Horario: ${filteredMaterias[index]!['horario_id'][1]}"),
                     ],
                   ),
                 );

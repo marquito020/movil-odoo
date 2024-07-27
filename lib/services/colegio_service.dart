@@ -140,9 +140,50 @@ class ColegioService {
   }
 
   Future<List<Map<String, dynamic>?>> getMaterias() async {
-    final fields = ["id", "curso_id", "profesor_id", "aula_id", "horario_id", "name"];
+    final fields = [
+      "id",
+      "curso_id",
+      "profesor_id",
+      "aula_id",
+      "horario_id",
+      "name"
+    ];
     final response = await DioConfig.dioWithoutAuthorization.get(
       '/send_request?model=mi_modulo_academico.materia',
+      data: {
+        'fields': fields,
+      },
+    );
+
+    if (response.statusCode == 200) {
+      // Ensure response.data is decoded correctly
+      final data = json.decode(response.data);
+
+      if (data is Map &&
+          data.containsKey("records") &&
+          data["records"] is List) {
+        final records = data["records"] as List;
+        // Ensure the list contains maps
+        return records
+            .map((record) => record as Map<String, dynamic>?)
+            .toList();
+      } else {
+        // Handle case where "records" key is missing or is not a List
+        print(
+            "Error: 'records' key is missing or not a List in response data.");
+        return [];
+      }
+    } else {
+      // Handle non-200 status code
+      print("Error: Request failed with status: ${response.statusCode}");
+      return [];
+    }
+  }
+
+  Future<List<Map<String, dynamic>?>> getAsistencias() async {
+    final fields = ["id", "alumno_id", "profesor_id" /* , "fecha" */];
+    final response = await DioConfig.dioWithoutAuthorization.get(
+      '/send_request?model=mi_modulo_academico.asistencia',
       data: {
         'fields': fields,
       },

@@ -11,20 +11,50 @@ class ProfesorScreen extends StatefulWidget {
 
 class _ProfesorScreenState extends State<ProfesorScreen> {
   List<Map<String, dynamic>?> profesores = [];
-
+  List<Map<String, dynamic>?> filteredProfesores = [];
   ColegioService colegioService = ColegioService();
+  TextEditingController searchController = TextEditingController();
+  bool isLoading = false;
 
   @override
   void initState() {
-    // TODO: implement initState
     super.initState();
     init();
   }
 
   Future<void> init() async {
+    setState(() {
+      isLoading = true;
+    });
+
     profesores = await colegioService.getProfesores();
-    print(profesores);
-    setState(() {});
+    filteredProfesores = profesores;
+
+    setState(() {
+      isLoading = false;
+    });
+  }
+
+  void _filterProfesores(String query) {
+    if (query.isEmpty) {
+      setState(() {
+        filteredProfesores = profesores;
+      });
+    } else {
+      setState(() {
+        filteredProfesores = profesores.where((profesor) {
+          final name = profesor?['name']?.toLowerCase() ?? '';
+
+          return name.contains(query.toLowerCase());
+        }).toList();
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    searchController.dispose();
+    super.dispose();
   }
 
   @override
@@ -32,24 +62,43 @@ class _ProfesorScreenState extends State<ProfesorScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Profesores'),
-      ),
-      body: ListView.builder(
-        itemCount: profesores.length,
-        itemBuilder: (context, index) {
-          return Container(
-            margin: const EdgeInsets.only(bottom: 16),
-            padding: const EdgeInsets.all(16),
-            decoration: boxDecorationRoundedWithShadow(16),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text("Nombre: ${profesores[index]!['name']}"),
-                8.height,
-              ],
+        bottom: PreferredSize(
+          preferredSize: const Size.fromHeight(48.0),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: TextField(
+              controller: searchController,
+              decoration: const InputDecoration(
+                hintText: 'Buscar...',
+                border: OutlineInputBorder(),
+                prefixIcon: Icon(Icons.search),
+              ),
+              onChanged: _filterProfesores,
             ),
-          );
-        },
+          ),
+        ),
       ),
+      body: isLoading
+          ? const Center(
+              child: CircularProgressIndicator(),
+            )
+          : ListView.builder(
+              itemCount: filteredProfesores.length,
+              itemBuilder: (context, index) {
+                return Container(
+                  margin: const EdgeInsets.only(bottom: 16),
+                  padding: const EdgeInsets.all(16),
+                  decoration: boxDecorationRoundedWithShadow(16),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text("Nombre: ${filteredProfesores[index]!['name']}"),
+                      8.height,
+                    ],
+                  ),
+                );
+              },
+            ),
     );
   }
 }
